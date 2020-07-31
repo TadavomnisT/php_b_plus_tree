@@ -123,7 +123,7 @@ class B_Plus_Tree
                     $this->nodes[$this->getRoot()["key"]]->addValues( $value );
                 }
                 else 
-                { //assumed that current node will be the parent after breaking
+                {   //insert
                     $preRootKey = $this->getRoot()["key"];
                     $this->nodes[$preRootKey]->addValues( $value );
                     //...break node...
