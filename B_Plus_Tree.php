@@ -104,7 +104,7 @@ class Node
 
 class B_Plus_Tree 
 {
-    public function __construct( int $maxDegree , array $values = null) {
+    public function __construct( int $maxDegree , $values = null) {
         $this->nodes = [];
         $this->maxDegree = $maxDegree;
         if ($values !== null) $this->insert($values);
