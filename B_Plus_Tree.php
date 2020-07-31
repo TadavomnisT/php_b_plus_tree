@@ -27,12 +27,16 @@ class Node
     {
         $this->values = $newValues;
         asort($this->values);
+        ksort($this->values);
+        $this->values = array_values($this->values);
         return $this->values;
     }
     public function addValues( $newValue )
     {
         $this->values[] = $newValue;
         asort($this->values);
+        ksort($this->values);
+        $this->values = array_values($this->values);
         return $this->values;
     }
     public function setParent( $newParent )
@@ -43,16 +47,22 @@ class Node
     public function setChildren( $newChildren = [] )
     {
         $this->children = $newChildren;
+        ksort($this->children);
+        $this->children = array_values($this->children);
         return $this->children;
     }
     public function addChildren( $newChild )
     {
         $this->children[] = $newChild;
+        ksort($this->children);
+        $this->children = array_values($this->children);
         return $this->children;
     }
     public function delValues( $index )
     {
         unset($this->values[$index]);
+        ksort($this->values);
+        $this->values = array_values($this->values);
         return $this->values;
     }
     public function delAllValues()
@@ -68,6 +78,8 @@ class Node
     public function delChildren( $index )
     {
         unset($this->children[$index]);
+        ksort($this->children);
+        $this->children = array_values($this->children);
         return $this->children;
     }
     public function delAllChildren()
@@ -79,6 +91,14 @@ class Node
     {
         if( count($this->children) === 0 ) return true;
         return false;
+    }
+    public function popFirstValue()
+    {
+        $return = $this->values[0];
+        unset($this->values[0]);
+        ksort($this->values);
+        $this->values = array_values($this->values);
+        return $return;
     }
 }
 
@@ -128,7 +148,7 @@ class B_Plus_Tree
                 if ( (count($this->nodes[$searchResult["node"]["key"]]->values) + 1) < $this->maxDegree ) {
                     $this->nodes[$searchResult["node"]["key"]]->addValues( $value );
                 }
-                else {
+                else { //**
                     $tempNode = $searchResult["node"]["node"];
                     $tempKey = $searchResult["node"]["key"];
                     $this->nodes[$tempKey]->addValues( $value );
@@ -155,29 +175,36 @@ class B_Plus_Tree
                             array_splice($tempChildren, ($theKey + 1), 0, array($rightChildIndex));
                             $this->nodes[$tempKey]->setChildren($tempChildren);
                             //breaking----------------------------------
+                            if ( $this->nodes[$tempKey]->parent !== null ){
+                                echo "parent not null father broke!".PHP_EOL;
+                                $breakIndexValues = floor(count($this->nodes[$tempKey]->values) / 2);
+                                $leftChildValues =[];
+                                $rightChildValues =[];
+                                foreach ($this->nodes[$tempKey]->values as $key => $val) {
+                                    if($key < $breakIndexValues) $leftChildValues[] = $val;
+                                    else $rightChildValues[] = $val;
 
-                            $breakIndexValues = floor(count($this->nodes[$tempKey]->values) / 2);
-                            $leftChildValues =[];
-                            $rightChildValues =[];
-                            foreach ($this->nodes[$tempKey]->values as $key => $val) {
-                                if($key < $breakIndexValues) $leftChildValues[] = $val;
-                                else $rightChildValues[] = $val;
+                                }
+                                $breakIndexChildren = floor(count($this->nodes[$tempKey]->children) / 2);
+                                $leftChildChildren =[];
+                                $rightChildChildren =[];
+                                foreach ($this->nodes[$tempKey]->children as $key => $val) {
+                                    if($key < $breakIndexChildren) $leftChildChildren[] = $val;
+                                    else $rightChildChildren[] = $val;
+                                }
+                                $rightChildIndex = $this->addNode([] , $this->nodes[$tempKey]->parent)['key'];
+                                $this->nodes[$tempKey]->setChildren($leftChildChildren);
+                                $this->nodes[$tempKey]->setValues($leftChildValues);
+                                $this->nodes[$rightChildIndex]->setChildren($rightChildChildren);
+                                $this->nodes[$rightChildIndex]->setValues($rightChildValues);
+                                
+                                if(( !($tempNode->isLeafe()) )) $this->nodes[$rightChildIndex]->popFirstValue();
+                                foreach ($rightChildChildren as $index) {
+                                    $this->nodes[$index]->setParent($rightChildIndex);
+                                }
                             }
-                            $breakIndexChildren = floor(count($this->nodes[$tempKey]->children) / 2);
-                            $leftChildChildren =[];
-                            $rightChildChildren =[];
-                            foreach ($this->nodes[$tempKey]->children as $key => $val) {
-                                if($key < $breakIndexChildren) $leftChildChildren[] = $val;
-                                else $rightChildChildren[] = $val;
-                            }
-                            $rightChildIndex = $this->addNode([] , $this->nodes[$tempKey]->parent)['key'];
-                            $this->nodes[$tempKey]->setChildren($leftChildChildren);
-                            $this->nodes[$tempKey]->setValues($leftChildValues);
-                            $this->nodes[$rightChildIndex]->setChildren($rightChildChildren);
-                            $this->nodes[$rightChildIndex]->setValues($rightChildValues);
-
                             // -----------------------------------------
-                            if (!isset ($this->nodes[$this->nodes[$tempKey]->parent]->values)) { // if parrent was null means tree finished
+                            if ( $this->nodes[$tempKey]->parent === null ) { // if parrent was null means tree finished
                                 if( count( $this->nodes[$tempKey]->values ) >= $this->maxDegree  )
                                 {//make a new root
                                     $breakIndexValues = floor(count($this->nodes[$tempKey]->values) / 2);
@@ -194,13 +221,18 @@ class B_Plus_Tree
                                         if($key < $breakIndexChildren) $leftChildChildren[] = $val;
                                         else $rightChildChildren[] = $val;
                                     }
-                                    $newRootKey = $this->addNode( [$rightChildValues[0]] , null ,[ $tempKey  , $rightChildIndex ] )['key'];
+                                    $newRootKey = $this->addNode( [$rightChildValues[0]] , null )['key'];
                                     $rightChildIndex = $this->addNode([] , $newRootKey)['key'];
+                                    $this->nodes[$newRootKey]->setChildren([ $tempKey  , $rightChildIndex ]);
                                     $this->nodes[$tempKey]->setChildren($leftChildChildren);
                                     $this->nodes[$tempKey]->setValues($leftChildValues);
                                     $this->nodes[$tempKey]->setParent($newRootKey);
                                     $this->nodes[$rightChildIndex]->setChildren($rightChildChildren);
                                     $this->nodes[$rightChildIndex]->setValues($rightChildValues);
+                                    if(( !($tempNode->isLeafe()) )) $this->nodes[$rightChildIndex]->popFirstValue();
+                                    foreach ($rightChildChildren as $index) {
+                                        $this->nodes[$index]->setParent($rightChildIndex);
+                                    }
                                 }
                                 break;
                             }
@@ -231,9 +263,9 @@ class B_Plus_Tree
 
         
     }
-    public function delete(Type $var = null)
+    public function delete(int $value)
     {
-        # code...
+        # I should put sth here...
     }
     public function search( $value )
     {
@@ -247,6 +279,7 @@ class B_Plus_Tree
             do {
                 $flag = false;
                 foreach ($tempNode->values as $key => $tempValue) {
+                    if (!($tempNode->isLeafe())) break ;
                     if($value === $tempValue){
                         $tempKey = $tempNode->children[ ($key + 1) ];
                         $tempNode = $this->nodes[$tempKey] ;
