@@ -109,9 +109,9 @@ class B_Plus_Tree
         $this->maxDegree = $maxDegree;
         if ($values !== null) $this->insert($values);
     }
-    public function insert(array $insertValue = [])
+    public function insert(array $insertValue)
     {
-
+        if( !is_array($insertValue) ) $insertValue = [ $insertValue ];
         foreach ($insertValue as $value) {
             if( count($this->nodes) === 0 )
             {
