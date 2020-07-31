@@ -151,7 +151,9 @@ class B_Plus_Tree
                 else { //**
                     $tempNode = $searchResult["node"]["node"];
                     $tempKey = $searchResult["node"]["key"];
+                    // insert
                     $this->nodes[$tempKey]->addValues( $value );
+                    // break
                     $breakIndex = floor(count($this->nodes[$tempKey]->values) / 2);
                     $leftChild =[];
                     $rightChild =[];
@@ -176,7 +178,6 @@ class B_Plus_Tree
                             $this->nodes[$tempKey]->setChildren($tempChildren);
                             //breaking----------------------------------
                             if ( $this->nodes[$tempKey]->parent !== null ){
-                                echo "parent not null father broke!".PHP_EOL;
                                 $breakIndexValues = floor(count($this->nodes[$tempKey]->values) / 2);
                                 $leftChildValues =[];
                                 $rightChildValues =[];
@@ -248,7 +249,7 @@ class B_Plus_Tree
                             }
                         }
                     }
-                    else{
+                    else{ //if parrent does't break
                         foreach ($this->nodes[$this->nodes[$tempKey]->parent]->children as $key => $value) {
                             if($value == $tempKey ) $theKey = $key;
                         }
