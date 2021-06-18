@@ -348,7 +348,7 @@ class B_Plus_Tree
     }
     public function print()
     {
-        printTree($this->convertToArray());
+        $this->printTree($this->convertToArray());
     }
     public function printArray()
     {
