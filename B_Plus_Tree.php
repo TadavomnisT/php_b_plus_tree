@@ -340,7 +340,7 @@ class B_Plus_Tree
                     echo (($first) ? "" : $firstPadding ) . $stack . "├── ";
                     $padding = "│   ";
                 }
-                if( is_array($value) )printTree( $value , $key ,   $stack . (($first) ? "" : $padding ) , FALSE , $firstPadding );
+                if( is_array($value) )$this->printTree( $value , $key ,   $stack . (($first) ? "" : $padding ) , FALSE , $firstPadding );
                 else echo $key . " -> " . $value . PHP_EOL;
             }
         }
